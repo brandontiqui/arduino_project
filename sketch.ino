@@ -2,74 +2,53 @@
 
 Nunchuk leftNchuk(Wire);
 Nunchuk rightNchuk(Wire1);
+Nunchuk controllers[] = {leftNchuk, rightNchuk};
+#define CONTROLLER_COUNT 2
 
-int leftZButtonClickCount = 0;
-int rightZButtonClickCount = 0;
-boolean leftZButtonDepressed;
-boolean rightZButtonDepressed;
+int zButtonClickCounts[] = {0, 0};
+boolean zButtonDepressedVals[] = {false, false};
+
+void initializeControllers() {
+  for (int controllerIndex = 0; controllerIndex < CONTROLLER_COUNT; controllerIndex++) {
+    Nunchuk controller = controllers[controllerIndex];
+    controller.begin();
+    controller.i2c().setClock(400000);
+
+    boolean controllerIsConnected = false;
+    while (!(controllerIsConnected)) {
+      controllerIsConnected  = controller.connect();
+    }
+    Serial.println("Controller connected");
+  }
+}
+
+void recordZButtonClicks(Nunchuk controller, int controllerIndex) {
+  if (controller.buttonZ()) {
+    if (!zButtonDepressedVals[controllerIndex]) {
+      zButtonClickCounts[controllerIndex]++;
+      Serial.println(zButtonClickCounts[controllerIndex]);
+      zButtonDepressedVals[controllerIndex] = true;
+    }
+  } else {
+    // z button released, reset
+    if (zButtonDepressedVals[controllerIndex]) {
+      zButtonDepressedVals[controllerIndex] = false;
+    }
+  }
+}
 
 void setup() {
-  Serial.println("test");
-  // I2C Init
-  leftNchuk.begin();
-  rightNchuk.begin();
-  leftNchuk.i2c().setClock(400000);
-  rightNchuk.i2c().setClock(400000);
-
-  boolean leftConnected = false;
-  boolean rightConnected = false;
-
-  // connect left controller
-  while (!(leftConnected)) {
-    Serial.println("left is not connected");
-    leftConnected  = leftNchuk.connect();
-  }
-  Serial.println("left is connected");
-  // connect right controller
-  while (!(rightConnected)) {
-    Serial.println("right is not connected");
-    rightConnected = rightNchuk.connect();
-  }
-  Serial.println("right is connected");
+  initializeControllers();
 }
 
 void loop() {
-  boolean leftReady = leftNchuk.update();
-  boolean rightReady = rightNchuk.update();
+  for (int controllerIndex = 0; controllerIndex < CONTROLLER_COUNT; controllerIndex++) {
+    Nunchuk controller = controllers[controllerIndex];
 
-  if (leftReady) {
-    if (leftNchuk.buttonC()) {
-      Serial.println("left c pressed");
-    }
-    if (leftNchuk.buttonZ()) {
-      if (!leftZButtonDepressed) {
-        leftZButtonClickCount++;
-        Serial.println(leftZButtonClickCount);
-        leftZButtonDepressed = true;
-      }
-    } else {
-      // z button released, reset
-      if (leftZButtonDepressed) {
-        leftZButtonDepressed = false;
-      }
-    }
-  }
+    boolean controllerIsReady = controller.update();
 
-  if (rightReady) {
-    if (rightNchuk.buttonC()) {
-      Serial.println("right c pressed");
-    }
-    if (rightNchuk.buttonZ()) {
-      if (!rightZButtonDepressed) {
-        rightZButtonClickCount++;
-        Serial.println(rightZButtonClickCount);
-        rightZButtonDepressed = true;
-      }
-    } else {
-      // z button released, reset
-      if (rightZButtonDepressed) {
-        rightZButtonDepressed = false;
-      }
+    if (controllerIsReady) {
+      recordZButtonClicks(controller, controllerIndex);
     }
   }
 }
