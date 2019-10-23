@@ -3,6 +3,11 @@
 Nunchuk leftNchuk(Wire);
 Nunchuk rightNchuk(Wire1);
 
+int leftZButtonClickCount = 0;
+int rightZButtonClickCount = 0;
+boolean leftZButtonDepressed;
+boolean rightZButtonDepressed;
+
 void setup() {
   Serial.println("test");
   // I2C Init
@@ -37,7 +42,16 @@ void loop() {
       Serial.println("left c pressed");
     }
     if (leftNchuk.buttonZ()) {
-      Serial.println("left z pressed");
+      if (!leftZButtonDepressed) {
+        leftZButtonClickCount++;
+        Serial.println(leftZButtonClickCount);
+        leftZButtonDepressed = true;
+      }
+    } else {
+      // z button released, reset
+      if (leftZButtonDepressed) {
+        leftZButtonDepressed = false;
+      }
     }
   }
 
@@ -46,7 +60,16 @@ void loop() {
       Serial.println("right c pressed");
     }
     if (rightNchuk.buttonZ()) {
-      Serial.println("right z pressed");
+      if (!rightZButtonDepressed) {
+        rightZButtonClickCount++;
+        Serial.println(rightZButtonClickCount);
+        rightZButtonDepressed = true;
+      }
+    } else {
+      // z button released, reset
+      if (rightZButtonDepressed) {
+        rightZButtonDepressed = false;
+      }
     }
   }
 }
