@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Serial Connect</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.1/socket.io.js"></script>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script>
+        var socket = io.connect('//localhost:3000');
+        socket.on('data', function (data) {
+            const value = JSON.parse(data);
+            $('#incoming').text(value);
+        });
+        socket.on('error', function () {
+            console.error(arguments)
+        });
+    </script>
+</head>
+
+<body>
+    <h1 id="incoming">Waiting for players</h1>
+
+</body>
+
+</html>
