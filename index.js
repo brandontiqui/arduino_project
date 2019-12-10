@@ -1,5 +1,7 @@
 var com = require("serialport");
 var app = require("express")();
+const say = require("say");
+let lastSpokenWords = '';
 
 //import serialport module
 var SerialPort = require("serialport");
@@ -32,5 +34,26 @@ serialPort.on("open", function() {
 //when data is recieved log it to the console
 parser.on("data", function(data) {
   io.sockets.emit("data", data);
+  if (lastSpokenWords !== data) {
+    say.speak(data);
+    lastSpokenWords = data;
+  }
   console.log(data);
+});
+
+// web-player-data
+//when data is recieved log it to the console
+//Process incoming messages
+io.on('connection', function (socket) {
+  socket.on('web-player-data', function (msg) {
+      console.log(msg.val);
+      // if (msg.val === 'green') {
+        serialPort.write('G', function (err) {
+          if (err) {
+            return console.log('Error on write: ', err.message);
+          }
+          console.log(msg + ' written');
+        });
+      // }
+  });
 });
